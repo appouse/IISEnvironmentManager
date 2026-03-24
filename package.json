@@ -5,11 +5,12 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "build": "electron-builder --win"
+    "build": "npx @electron/packager . \"IIS Environment Controller\" --platform=win32 --arch=x64 --out=dist --overwrite --asar"
   },
   "author": "Appouse",
   "license": "SEE LICENSE IN LICENSE",
   "devDependencies": {
+    "@electron/packager": "^19.1.0",
     "electron": "^28.0.0",
     "electron-builder": "^24.9.1"
   },
@@ -17,15 +18,18 @@
     "xml2js": "^0.6.2"
   },
   "build": {
-    "appId": "com.iis.environment-controller",
+    "appId": "com.appouse.iis-environment-controller",
     "productName": "IIS Environment Controller",
+    "copyright": "Copyright © 2026 Appouse. Tüm hakları saklıdır.",
     "win": {
-      "target": "nsis",
-      "requestedExecutionLevel": "requireAdministrator"
+      "target": "portable",
+      "requestedExecutionLevel": "requireAdministrator",
+      "legalTrademarks": "Appouse",
+      "publisherName": "Appouse"
     },
-    "nsis": {
-      "oneClick": false,
-      "allowToChangeInstallationDirectory": true
-    }
+    "portable": {
+      "artifactName": "IISEnvironmentController.exe"
+    },
+    "forceCodeSigning": false
   }
 }
