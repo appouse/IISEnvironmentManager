@@ -40,6 +40,6 @@
     "forceCodeSigning": false
   },
   "updateConfig": {
-    "url": "https://raw.githubusercontent.com/appouse/IISEnvironmentController/main/version.json"
+    "url": "https://raw.githubusercontent.com/appouse/IISEnvironmentManager/main/version.json"
   }
 }
