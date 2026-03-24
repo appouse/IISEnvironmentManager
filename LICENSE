@@ -1,23 +1,34 @@
-MIT License
+Appouse Özel Lisans (Appouse Custom License)
 
-Copyright (c) 2026 Appouse
+Copyright (c) 2026 Appouse. Tüm hakları saklıdır.
 
-All rights reserved.
+Bu yazılım ve ilişkili dokümantasyon dosyaları ("Yazılım"), aşağıdaki koşullara
+bağlı olarak herhangi bir kişi tarafından ücretsiz olarak kullanılabilir:
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+İZİN VERİLEN KULLANIM:
+  - Yazılımın kişisel ve kurumsal ortamlarda ücretsiz kullanımı serbesttir.
+  - Yazılımın kaynak kodu incelenebilir, değiştirilebilir ve geliştirilebilir.
+  - Yazılıma katkıda bulunulabilir (pull request, issue, yama gönderimi vb.).
+  - Yazılımın değiştirilmiş versiyonları, bu lisans koşullarını korumak kaydıyla
+    açık kaynak olarak dağıtılabilir.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+YASAKLANAN KULLANIM:
+  - Yazılım, Appouse'un yazılı izni olmadan ticari amaçla satılamaz, kiralanamaz
+    veya herhangi bir şekilde doğrudan ya da dolaylı gelir elde etmek amacıyla
+    kullanılamaz.
+  - Yazılımın tamamı veya bir kısmı, ücretli bir ürün ya da hizmetin parçası
+    olarak dağıtılamaz.
+  - Yazılım üzerinden Appouse'un yazılı onayı olmaksızın herhangi bir şekilde
+    kazanç sağlanamaz.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+KOŞULLAR:
+  - Bu lisans bildirimi ve telif hakkı notu, yazılımın tüm kopyalarında veya
+    önemli bölümlerinde yer almalıdır.
+  - Yazılımın türetilmiş çalışmaları da bu lisans koşullarına tabi olmalıdır.
+
+GARANTİ REDDİ:
+  YAZILIM "OLDUĞU GİBİ" SAĞLANMAKTADIR. APPOUSE, YAZILIMIN KULLANIMINDAN DOĞAN
+  HERHANGİ BİR DOĞRUDAN VEYA DOLAYLI ZARARDAN SORUMLU TUTULAMAZ. YAZILIM
+  HERHANGİ BİR GARANTİ OLMAKSIZIN SUNULMAKTADIR.
+
+İletişim ve ticari lisans talepleri için: info@appouse.com

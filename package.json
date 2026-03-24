@@ -8,7 +8,7 @@
     "build": "electron-builder --win"
   },
   "author": "Appouse",
-  "license": "MIT",
+  "license": "SEE LICENSE IN LICENSE",
   "devDependencies": {
     "electron": "^28.0.0",
     "electron-builder": "^24.9.1"
