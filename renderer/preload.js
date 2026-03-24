@@ -18,4 +18,11 @@ contextBridge.exposeInMainWorld('api', {
 
   // Dialog
   confirm: (message) => ipcRenderer.invoke('dialog:confirm', message),
+
+  // Update operations
+  downloadUpdate: (versionInfo) => ipcRenderer.invoke('update:download', versionInfo),
+  applyUpdate: (filePath) => ipcRenderer.invoke('update:apply', filePath),
+  getVersion: () => ipcRenderer.invoke('update:getVersion'),
+  onUpdateAvailable: (callback) => ipcRenderer.on('update:available', (_, info) => callback(info)),
+  onUpdateProgress: (callback) => ipcRenderer.on('update:progress', (_, progress) => callback(progress)),
 });

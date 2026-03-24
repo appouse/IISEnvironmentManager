@@ -2,9 +2,15 @@ const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
 const iisManager = require('./src/iis-manager');
 const configManager = require('./src/config-manager');
+const AutoUpdater = require('./src/auto-updater');
 const fs = require('fs');
 
 let mainWindow;
+let updater;
+
+// ── Update Config ───────────────────────────────
+const pkg = require('./package.json');
+const UPDATE_URL = pkg.updateConfig?.url || '';
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -29,13 +35,66 @@ function createWindow() {
   mainWindow.loadFile(path.join(__dirname, 'renderer', 'index.html'));
 }
 
-app.whenReady().then(createWindow);
+app.whenReady().then(() => {
+  createWindow();
+  initAutoUpdater();
+});
 
 app.on('window-all-closed', () => {
   app.quit();
 });
 
+// ── Auto Updater ────────────────────────────────
+function initAutoUpdater() {
+  if (!UPDATE_URL) {
+    console.log('Update URL not configured, skipping update check');
+    return;
+  }
+
+  updater = new AutoUpdater({
+    updateUrl: UPDATE_URL,
+    currentVersion: pkg.version
+  });
+
+  updater.onDownloadProgress = (progress) => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('update:progress', progress);
+    }
+  };
+
+  // Uygulama yüklenince kontrol et
+  mainWindow.webContents.on('did-finish-load', async () => {
+    try {
+      const result = await updater.checkForUpdates();
+      if (result.updateAvailable) {
+        mainWindow.webContents.send('update:available', result.versionInfo);
+      }
+    } catch (err) {
+      console.error('Auto-update check failed:', err);
+    }
+  });
+}
+
 // ── IPC Handlers ──────────────────────────────────────────
+
+ipcMain.handle('update:download', async (_, versionInfo) => {
+  if (!updater) return { success: false, error: 'Updater not initialized' };
+  try {
+    return await updater.downloadUpdate(versionInfo);
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+});
+
+ipcMain.handle('update:apply', async (_, filePath) => {
+  if (!updater) return;
+  updater.applyUpdate(filePath);
+  app.quit();
+});
+
+ipcMain.handle('update:getVersion', () => {
+  return pkg.version;
+});
 
 ipcMain.handle('iis:getAppPools', async () => {
   return await iisManager.getApplicationPools();

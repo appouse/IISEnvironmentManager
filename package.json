@@ -3,9 +3,15 @@
   "version": "1.0.0",
   "description": "IIS Application Pool ve Environment Variable yönetim aracı",
   "main": "main.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/<GITHUB_USER>/IISEnvironmentController.git"
+  },
   "scripts": {
     "start": "electron .",
-    "build": "npx @electron/packager . \"IIS Environment Controller\" --platform=win32 --arch=x64 --out=dist --overwrite --asar"
+    "build": "npx electron-builder --win portable",
+    "postbuild": "node scripts/postbuild.js",
+    "release": "npm version patch && npm run build && npm run postbuild"
   },
   "author": "Appouse",
   "license": "SEE LICENSE IN LICENSE",
@@ -31,5 +37,8 @@
       "artifactName": "IISEnvironmentController.exe"
     },
     "forceCodeSigning": false
+  },
+  "updateConfig": {
+    "url": "https://raw.githubusercontent.com/appouse/IISEnvironmentController/main/version.json"
   }
 }

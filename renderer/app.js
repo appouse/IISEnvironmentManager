@@ -32,7 +32,65 @@ const sidebarSearch = $('#sidebarSearch');
 document.addEventListener('DOMContentLoaded', () => {
   loadTree();
   bindEvents();
+  initUpdateUI();
 });
+
+// ── Auto Update UI ──────────────────────────
+let pendingVersionInfo = null;
+
+function initUpdateUI() {
+  const updateBanner = $('#updateBanner');
+  const btnUpdate = $('#btnUpdate');
+  const btnDismiss = $('#btnDismissUpdate');
+
+  // Sürüm numarasını footer'da göster
+  window.api.getVersion().then(v => {
+    const footerVersion = document.querySelector('.footer-version');
+    if (footerVersion) footerVersion.textContent = `v${v}`;
+  });
+
+  // Yeni sürüm mevcut
+  window.api.onUpdateAvailable((info) => {
+    pendingVersionInfo = info;
+    updateBanner.style.display = 'flex';
+    $('#updateTitle').textContent = `Yeni sürüm mevcut: v${info.version}`;
+    if (info.releaseNotes) {
+      $('#updateNotes').textContent = info.releaseNotes;
+    }
+  });
+
+  // İndirme progress
+  window.api.onUpdateProgress((progress) => {
+    $('#updateProgressFill').style.width = `${progress.percent}%`;
+    $('#updateProgressText').textContent = `${progress.percent}%`;
+  });
+
+  // Güncelle butonu
+  btnUpdate.addEventListener('click', async () => {
+    if (!pendingVersionInfo) return;
+    
+    btnUpdate.disabled = true;
+    btnUpdate.textContent = 'İndiriliyor...';
+    $('#updateProgressWrap').style.display = 'flex';
+
+    const result = await window.api.downloadUpdate(pendingVersionInfo);
+    
+    if (result.success) {
+      btnUpdate.textContent = 'Uygulanıyor...';
+      await window.api.applyUpdate(result.filePath);
+    } else {
+      btnUpdate.disabled = false;
+      btnUpdate.textContent = 'Güncelle';
+      $('#updateProgressWrap').style.display = 'none';
+      showToast('error', result.error || 'Güncelleme başarısız');
+    }
+  });
+
+  // Kapat butonu
+  btnDismiss.addEventListener('click', () => {
+    updateBanner.style.display = 'none';
+  });
+}
 
 function bindEvents() {
   $('#btnRefresh').addEventListener('click', loadTree);
