@@ -9,7 +9,7 @@
   },
   "scripts": {
     "start": "electron .",
-    "build": "npx electron-builder --win portable",
+    "build": "npx @electron/packager . \"IIS Environment Controller\" --platform=win32 --arch=x64 --out=dist --overwrite --asar",
     "postbuild": "node scripts/postbuild.js",
     "release": "npm version patch && npm run build && npm run postbuild"
   },
