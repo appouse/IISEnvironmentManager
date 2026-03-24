@@ -77,26 +77,9 @@ async function loadTree() {
   treeContainer.querySelectorAll('.tree-section').forEach(el => el.remove());
 
   try {
-    const [appPools, sites] = await Promise.all([
-      window.api.getAppPools(),
-      window.api.getSites()
-    ]);
+    const sites = await window.api.getSites();
 
     treeLoading.style.display = 'none';
-
-    // Render App Pools
-    const poolSection = createTreeSection('Application Pools', '🔧');
-    for (const pool of appPools) {
-      const state = pool.State?.toString() === '1' || pool.State === 'Started' ? 'Started' : 'Stopped';
-      const item = createTreeItem(
-        '⚡', 
-        pool.Name, 
-        state,
-        null // pools don't have direct config
-      );
-      poolSection.content.appendChild(item);
-    }
-    treeContainer.appendChild(poolSection.element);
 
     // Render Sites with Applications
     const siteSection = createTreeSection('Sites', '🌍');
@@ -138,7 +121,7 @@ async function loadTree() {
     }
     treeContainer.appendChild(siteSection.element);
 
-    showToast('success', `${appPools.length} pool, ${sites.length} site yüklendi`);
+    showToast('success', `${sites.length} site yüklendi`);
   } catch (err) {
     treeLoading.style.display = 'none';
     showToast('error', `IIS bilgileri yüklenemedi: ${err.message}`);
