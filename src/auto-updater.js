@@ -53,7 +53,8 @@ class AutoUpdater {
       fs.mkdirSync(tempDir, { recursive: true });
     }
 
-    const tempFile = path.join(tempDir, 'IISEnvironmentController_new.exe');
+    const fileName = versionInfo.fileName || path.basename(url);
+    const tempFile = path.join(tempDir, fileName);
 
     try {
       await this._downloadFile(url, tempFile);
@@ -79,25 +80,37 @@ class AutoUpdater {
     }
   }
 
-  applyUpdate(downloadedExePath) {
+  applyUpdate(downloadedZipPath) {
     const currentExe = process.execPath;
-    const currentDir = path.dirname(currentExe);
-    const currentName = path.basename(currentExe);
-    const backupPath = path.join(currentDir, `${currentName}.bak`);
+    const appDir = path.dirname(currentExe);
+    const backupDir = `${appDir}_backup`;
 
-    // PowerShell script: eski exe'yi yedekle, yenisini kopyala, başlat
+    // PowerShell script: uygulama kapandıktan sonra
+    // 1. Mevcut klasörü yedekle
+    // 2. Zip'i aç ve üzerine yaz
+    // 3. Uygulamayı yeniden başlat
     const psScript = `
       Start-Sleep -Seconds 2
       try {
-        if (Test-Path '${backupPath}') { Remove-Item '${backupPath}' -Force }
-        Move-Item '${currentExe}' '${backupPath}' -Force
-        Copy-Item '${downloadedExePath}' '${currentExe}' -Force
+        # Eski yedeği sil
+        if (Test-Path '${backupDir}') { Remove-Item '${backupDir}' -Recurse -Force }
+        
+        # Mevcut klasörü yedekle
+        Copy-Item '${appDir}' '${backupDir}' -Recurse -Force
+        
+        # Zip'i aç ve üzerine yaz
+        Expand-Archive -Path '${downloadedZipPath}' -DestinationPath '${appDir}' -Force
+        
+        # Uygulamayı başlat
         Start-Process '${currentExe}'
-        Remove-Item '${downloadedExePath}' -Force
+        
+        # Temp zip'i sil
+        Remove-Item '${downloadedZipPath}' -Force
       } catch {
-        # Güncelleme başarısız — eski exe'yi geri yükle
-        if (Test-Path '${backupPath}') {
-          Move-Item '${backupPath}' '${currentExe}' -Force
+        # Güncelleme başarısız — yedeği geri yükle
+        if (Test-Path '${backupDir}') {
+          Remove-Item '${appDir}' -Recurse -Force -ErrorAction SilentlyContinue
+          Move-Item '${backupDir}' '${appDir}' -Force
         }
         Start-Process '${currentExe}'
       }

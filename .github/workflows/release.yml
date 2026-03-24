@@ -25,19 +25,17 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build with electron-builder
-        run: npx electron-builder --win portable
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build with electron-packager
+        run: npm run build
 
-      - name: Generate version.json
-        run: node scripts/postbuild.js
+      - name: Generate version.json & zip
+        run: npm run postbuild
 
       - name: Upload Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            dist/IISEnvironmentController.exe
+            dist/IISEnvironmentController-*.zip
             dist/version.json
           generate_release_notes: true
         env:
@@ -47,9 +45,10 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout main
           cp dist/version.json version.json
           git add version.json
-          git commit -m "chore: update version.json to v${{ github.ref_name }}" || echo "No changes"
-          git push origin HEAD:main
+          git commit -m "chore: update version.json for ${{ github.ref_name }}"
+          git push origin main
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

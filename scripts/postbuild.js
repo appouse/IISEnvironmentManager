@@ -1,58 +1,78 @@
 /**
  * Postbuild Script
- * Build sonrası version.json otomatik oluşturur ve exe'nin SHA256 hash'ini hesaplar.
+ * @electron/packager çıktısını zipleyip version.json oluşturur.
  * Kullanım: node scripts/postbuild.js
  */
 
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const { execFileSync } = require('child_process');
 
 const pkg = require('../package.json');
 const version = pkg.version;
 
-// electron-builder output
 const distDir = path.join(__dirname, '..', 'dist');
-const exeName = 'IISEnvironmentController.exe';
-const exePath = path.join(distDir, exeName);
+const packagerOutput = path.join(distDir, 'IIS Environment Controller-win32-x64');
+const zipName = `IISEnvironmentController-v${version}.zip`;
+const zipPath = path.join(distDir, zipName);
 
-// GitHub repo bilgisi — package.json'daki repository alanından alınır
-const repoUrl = pkg.repository?.url?.replace(/\.git$/, '') || pkg.repository || '';
+// GitHub repo bilgisi
+const repoUrl = (pkg.repository?.url || pkg.repository || '').replace(/\.git$/, '');
 const githubRepo = repoUrl.replace('https://github.com/', '');
 
-if (!fs.existsSync(exePath)) {
-  console.error(`❌ Exe bulunamadı: ${exePath}`);
+// Packager çıktısını kontrol et
+if (!fs.existsSync(packagerOutput)) {
+  console.error(`❌ Packager çıktısı bulunamadı: ${packagerOutput}`);
   console.error('   Önce build çalıştırın: npm run build');
   process.exit(1);
 }
 
+// Eski zip varsa sil
+if (fs.existsSync(zipPath)) {
+  fs.unlinkSync(zipPath);
+}
+
+// PowerShell ile ziple
+console.log('📦 Zipleniyor...');
+try {
+  execFileSync('powershell.exe', [
+    '-NoProfile', '-NonInteractive', '-Command',
+    `Compress-Archive -Path '${packagerOutput}\\*' -DestinationPath '${zipPath}' -Force`
+  ]);
+} catch (err) {
+  console.error('❌ Zipleme başarısız:', err.message);
+  process.exit(1);
+}
+
 // SHA256 hesapla
-const fileBuffer = fs.readFileSync(exePath);
+const fileBuffer = fs.readFileSync(zipPath);
 const sha256 = crypto.createHash('sha256').update(fileBuffer).digest('hex');
 const fileSizeMB = (fileBuffer.length / 1024 / 1024).toFixed(2);
 
-// Download URL — GitHub Releases formatı
+// Download URL
 const downloadUrl = githubRepo
-  ? `https://github.com/${githubRepo}/releases/download/v${version}/${exeName}`
-  : `<DOWNLOAD_URL>/${exeName}`;
+  ? `https://github.com/${githubRepo}/releases/download/v${version}/${zipName}`
+  : `<DOWNLOAD_URL>/${zipName}`;
 
 // version.json oluştur
 const versionInfo = {
   version: version,
   url: downloadUrl,
   sha256: sha256,
+  fileName: zipName,
   releaseNotes: '',
   releasedAt: new Date().toISOString()
 };
 
-const outputPath = path.join(distDir, 'version.json');
-fs.writeFileSync(outputPath, JSON.stringify(versionInfo, null, 2), 'utf-8');
+// dist/ ve repo root'a yaz
+fs.writeFileSync(path.join(distDir, 'version.json'), JSON.stringify(versionInfo, null, 2), 'utf-8');
+fs.writeFileSync(path.join(__dirname, '..', 'version.json'), JSON.stringify(versionInfo, null, 2), 'utf-8');
 
 console.log('');
-console.log('✅ version.json oluşturuldu:');
+console.log('✅ Build tamamlandı:');
 console.log(`   📦 Sürüm:    v${version}`);
+console.log(`   📁 Zip:      ${zipName} (${fileSizeMB} MB)`);
 console.log(`   🔒 SHA256:   ${sha256}`);
-console.log(`   📁 Boyut:    ${fileSizeMB} MB`);
 console.log(`   🔗 URL:      ${downloadUrl}`);
-console.log(`   📄 Dosya:    ${outputPath}`);
 console.log('');
