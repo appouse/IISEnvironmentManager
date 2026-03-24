@@ -11,7 +11,8 @@
     "start": "electron .",
     "build": "npx @electron/packager . \"IIS Environment Controller\" --platform=win32 --arch=x64 --out=dist --overwrite --asar",
     "postbuild": "node scripts/postbuild.js",
-    "release": "npm run build && npm run postbuild"
+    "release": "npm run build && npm run postbuild",
+    "sendRelease": "npm version patch && git push origin main --tags"
   },
   "author": "Appouse",
   "license": "SEE LICENSE IN LICENSE",
