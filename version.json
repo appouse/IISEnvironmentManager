@@ -1,7 +1,8 @@
 {
-  "version": "1.0.0",
-  "url": "",
-  "sha256": "",
-  "releaseNotes": "İlk sürüm",
-  "releasedAt": ""
+  "version": "1.0.4",
+  "url": "https://github.com/appouse/IISEnvironmentController/releases/download/v1.0.4/IISEnvironmentController-v1.0.4.zip",
+  "sha256": "be98e3d07bc6c2ee787a881985c5a72abbdcd2a373ea3496f017958fab53ef4a",
+  "fileName": "IISEnvironmentController-v1.0.4.zip",
+  "releaseNotes": "",
+  "releasedAt": "2026-03-24T12:25:59.920Z"
 }
