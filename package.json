@@ -5,7 +5,7 @@
   "main": "main.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/<GITHUB_USER>/IISEnvironmentController.git"
+    "url": "https://github.com/appouse/IISEnvironmentController.git"
   },
   "scripts": {
     "start": "electron .",
