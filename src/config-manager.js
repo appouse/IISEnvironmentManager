@@ -282,6 +282,60 @@ async function importVariables(physicalPath, inputPath) {
   }
 }
 
+async function copyVariablesToSite(sourcePath, targetPaths, variables) {
+  const results = [];
+
+  for (const targetPath of targetPaths) {
+    try {
+      const configPath = findWebConfigPath(targetPath);
+      if (!fs.existsSync(configPath)) {
+        results.push({ path: targetPath, success: false, error: 'web.config bulunamadı' });
+        continue;
+      }
+
+      const xml = fs.readFileSync(configPath, 'utf-8');
+      const config = await parser.parseStringPromise(xml);
+
+      // Ensure structure exists
+      if (!config.configuration) config.configuration = {};
+      if (!config.configuration['system.webServer']) config.configuration['system.webServer'] = [{}];
+      if (!config.configuration['system.webServer'][0].aspNetCore) {
+        config.configuration['system.webServer'][0].aspNetCore = [{ $: { processPath: 'dotnet' } }];
+      }
+      const aspNetCore = config.configuration['system.webServer'][0].aspNetCore[0];
+      if (!aspNetCore.environmentVariables) aspNetCore.environmentVariables = [{}];
+      if (!aspNetCore.environmentVariables[0].environmentVariable) {
+        aspNetCore.environmentVariables[0].environmentVariable = [];
+      }
+
+      let added = 0, updated = 0;
+      for (const v of variables) {
+        if (v.type === 'appSettings') continue; // skip appSettings
+        const existing = aspNetCore.environmentVariables[0].environmentVariable.find(
+          e => e.$.name === v.name
+        );
+        if (existing) {
+          existing.$.value = v.value;
+          updated++;
+        } else {
+          aspNetCore.environmentVariables[0].environmentVariable.push({
+            $: { name: v.name, value: v.value }
+          });
+          added++;
+        }
+      }
+
+      const newXml = builder.buildObject(config);
+      fs.writeFileSync(configPath, newXml, 'utf-8');
+      results.push({ path: targetPath, success: true, added, updated });
+    } catch (err) {
+      results.push({ path: targetPath, success: false, error: err.message });
+    }
+  }
+
+  return { success: true, results };
+}
+
 module.exports = {
   readWebConfig,
   getEnvironmentVariables,
@@ -290,5 +344,6 @@ module.exports = {
   deleteEnvironmentVariable,
   bulkDeleteEnvironmentVariables,
   exportVariables,
-  importVariables
+  importVariables,
+  copyVariablesToSite
 };

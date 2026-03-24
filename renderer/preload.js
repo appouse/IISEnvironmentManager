@@ -15,6 +15,7 @@ contextBridge.exposeInMainWorld('api', {
   bulkDelete: (physicalPath, keys) => ipcRenderer.invoke('config:bulkDelete', physicalPath, keys),
   exportVars: (physicalPath) => ipcRenderer.invoke('config:exportVars', physicalPath),
   importVars: (physicalPath) => ipcRenderer.invoke('config:importVars', physicalPath),
+  copyVarsToSites: (sourcePath, targetPaths, variables) => ipcRenderer.invoke('config:copyVarsToSites', sourcePath, targetPaths, variables),
 
   // Dialog
   confirm: (message) => ipcRenderer.invoke('dialog:confirm', message),

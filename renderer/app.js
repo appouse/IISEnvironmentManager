@@ -26,6 +26,7 @@ const selectedCount = $('#selectedCount');
 const varCount = $('#varCount');
 const configFilePath = $('#configFilePath');
 const addVarModal = $('#addVarModal');
+const copyToSiteModal = $('#copyToSiteModal');
 const sidebarSearch = $('#sidebarSearch');
 
 // ── Initialize ──────────────────────────────
@@ -98,10 +99,15 @@ function bindEvents() {
   $('#btnExport').addEventListener('click', handleExport);
   $('#btnImport').addEventListener('click', handleImport);
   $('#btnBulkDelete').addEventListener('click', handleBulkDelete);
+  $('#btnCopyToSite').addEventListener('click', showCopyModal);
   
   $('#btnCloseModal').addEventListener('click', hideAddModal);
   $('#btnCancelAdd').addEventListener('click', hideAddModal);
   $('#btnConfirmAdd').addEventListener('click', handleAddVariable);
+
+  $('#btnCloseCopyModal').addEventListener('click', hideCopyModal);
+  $('#btnCancelCopy').addEventListener('click', hideCopyModal);
+  $('#btnConfirmCopy').addEventListener('click', handleCopyToSites);
   
   checkAll.addEventListener('change', handleCheckAll);
   varSearch.addEventListener('input', filterVariables);
@@ -115,12 +121,16 @@ function bindEvents() {
     }
     if (e.key === 'Escape') {
       hideAddModal();
+      hideCopyModal();
     }
   });
 
   // Modal backdrop click
   addVarModal.addEventListener('click', (e) => {
     if (e.target === addVarModal) hideAddModal();
+  });
+  copyToSiteModal.addEventListener('click', (e) => {
+    if (e.target === copyToSiteModal) hideCopyModal();
   });
 
   // Enter in modal
@@ -440,6 +450,10 @@ function updateBulkDeleteBtn() {
   const count = selectedKeys.size;
   btnBulkDelete.style.display = count > 0 ? 'inline-flex' : 'none';
   selectedCount.textContent = count;
+  const btnCopyToSite = $('#btnCopyToSite');
+  const copyCount = $('#copyCount');
+  btnCopyToSite.style.display = count > 0 ? 'inline-flex' : 'none';
+  copyCount.textContent = count;
 }
 
 // ── Delete ──────────────────────────────────
@@ -525,6 +539,167 @@ async function handleImport() {
     await loadVariables();
   } else {
     showToast('error', result.error || 'Import başarısız');
+  }
+}
+
+// ── Copy to Site ────────────────────────────
+let copySiteSelections = new Set();
+let allSitesForCopy = [];
+
+async function showCopyModal() {
+  if (selectedKeys.size === 0) {
+    showToast('warning', 'Lütfen kopyalanacak değişkenleri seçin');
+    return;
+  }
+
+  copySiteSelections.clear();
+  copyToSiteModal.style.display = 'flex';
+  $('#copyVarCount').textContent = selectedKeys.size;
+  $('#btnConfirmCopy').disabled = true;
+  $('#copySiteSearch').value = '';
+
+  const siteList = $('#copySiteList');
+  siteList.innerHTML = '<div class="loading-indicator" style="padding:20px"><div class="spinner"></div><span>Siteler yükleniyor...</span></div>';
+
+  try {
+    const sites = await window.api.getSites();
+    allSitesForCopy = [];
+
+    for (const site of sites) {
+      const physPath = await window.api.getSitePhysicalPath(site.Name);
+      if (physPath && physPath !== currentPhysicalPath) {
+        const state = site.State?.toString() === '1' || site.State === 'Started' ? 'Started' : 'Stopped';
+        allSitesForCopy.push({ name: site.Name, path: physPath, state });
+      }
+
+      // Also get sub-applications
+      const apps = await window.api.getApplications(site.Name);
+      if (apps && apps.length > 0) {
+        for (const app of apps) {
+          if (app.PhysicalPath && app.PhysicalPath !== currentPhysicalPath) {
+            allSitesForCopy.push({
+              name: `${site.Name}${app.Path}`,
+              path: app.PhysicalPath,
+              state: site.State?.toString() === '1' || site.State === 'Started' ? 'Started' : 'Stopped'
+            });
+          }
+        }
+      }
+    }
+
+    renderCopySiteList(allSitesForCopy);
+
+    // Bind search
+    $('#copySiteSearch').addEventListener('input', () => {
+      const q = $('#copySiteSearch').value.toLowerCase();
+      const filtered = allSitesForCopy.filter(s => s.name.toLowerCase().includes(q) || s.path.toLowerCase().includes(q));
+      renderCopySiteList(filtered);
+    });
+
+  } catch (err) {
+    siteList.innerHTML = `<div class="copy-empty">Site bilgileri alınamadı: ${err.message}</div>`;
+  }
+}
+
+function renderCopySiteList(sites) {
+  const siteList = $('#copySiteList');
+  siteList.innerHTML = '';
+
+  if (sites.length === 0) {
+    siteList.innerHTML = '<div class="copy-empty">Hedef site bulunamadı</div>';
+    return;
+  }
+
+  for (const site of sites) {
+    const item = document.createElement('div');
+    item.className = `copy-site-item${copySiteSelections.has(site.path) ? ' checked' : ''}`;
+
+    const badgeClass = site.state === 'Started' ? 'badge-running' : 'badge-stopped';
+    const badgeText = site.state === 'Started' ? 'Çalışıyor' : 'Durdu';
+
+    item.innerHTML = `
+      <input type="checkbox" ${copySiteSelections.has(site.path) ? 'checked' : ''} />
+      <div class="copy-site-item-info">
+        <div class="copy-site-item-name">${escapeHtml(site.name)}</div>
+        <div class="copy-site-item-path">${escapeHtml(site.path)}</div>
+      </div>
+      <span class="copy-site-item-badge ${badgeClass}">${badgeText}</span>
+    `;
+
+    const cb = item.querySelector('input[type="checkbox"]');
+    const toggle = () => {
+      if (copySiteSelections.has(site.path)) {
+        copySiteSelections.delete(site.path);
+        cb.checked = false;
+        item.classList.remove('checked');
+      } else {
+        copySiteSelections.add(site.path);
+        cb.checked = true;
+        item.classList.add('checked');
+      }
+      $('#btnConfirmCopy').disabled = copySiteSelections.size === 0;
+    };
+
+    item.addEventListener('click', (e) => {
+      if (e.target !== cb) toggle();
+    });
+    cb.addEventListener('change', toggle);
+
+    siteList.appendChild(item);
+  }
+}
+
+function hideCopyModal() {
+  copyToSiteModal.style.display = 'none';
+}
+
+async function handleCopyToSites() {
+  const targetPaths = Array.from(copySiteSelections);
+  if (targetPaths.length === 0) {
+    showToast('warning', 'Lütfen en az bir hedef site seçin');
+    return;
+  }
+
+  const variables = allVariables.filter(v => selectedKeys.has(v.name));
+  if (variables.length === 0) {
+    showToast('warning', 'Kopyalanacak değişken bulunamadı');
+    return;
+  }
+
+  const confirmed = await window.api.confirm(
+    `${variables.length} değişken, ${targetPaths.length} siteye kopyalanacak. Devam etmek istiyor musunuz?`
+  );
+  if (!confirmed) return;
+
+  $('#btnConfirmCopy').disabled = true;
+  $('#btnConfirmCopy').textContent = 'Kopyalanıyor...';
+
+  try {
+    const result = await window.api.copyVarsToSites(currentPhysicalPath, targetPaths, variables);
+
+    if (result.success) {
+      let successCount = 0;
+      let failCount = 0;
+      for (const r of result.results) {
+        if (r.success) {
+          successCount++;
+        } else {
+          failCount++;
+          showToast('error', `${r.path}: ${r.error}`);
+        }
+      }
+      if (successCount > 0) {
+        showToast('success', `${variables.length} değişken ${successCount} siteye kopyalandı`);
+      }
+    } else {
+      showToast('error', result.error || 'Kopyalama başarısız');
+    }
+  } catch (err) {
+    showToast('error', `Kopyalama hatası: ${err.message}`);
+  } finally {
+    $('#btnConfirmCopy').disabled = false;
+    $('#btnConfirmCopy').textContent = 'Kopyala';
+    hideCopyModal();
   }
 }
 

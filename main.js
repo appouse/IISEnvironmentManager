@@ -152,6 +152,10 @@ ipcMain.handle('config:addEnvVar', async (_, physicalPath, key, value) => {
   return await configManager.addEnvironmentVariable(physicalPath, key, value);
 });
 
+ipcMain.handle('config:copyVarsToSites', async (_, sourcePath, targetPaths, variables) => {
+  return await configManager.copyVariablesToSite(sourcePath, targetPaths, variables);
+});
+
 ipcMain.handle('dialog:confirm', async (_, message) => {
   const result = await dialog.showMessageBox(mainWindow, {
     type: 'question',

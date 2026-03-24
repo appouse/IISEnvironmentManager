@@ -90,6 +90,10 @@
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
               Import
             </button>
+            <button class="btn btn-copy" id="btnCopyToSite" style="display:none">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              Seçilenleri Kopyala (<span id="copyCount">0</span>)
+            </button>
             <button class="btn btn-danger" id="btnBulkDelete" style="display:none">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
               Seçilenleri Sil (<span id="selectedCount">0</span>)
@@ -153,6 +157,37 @@
     </div>
   </div>
 
+
+  <!-- Copy To Site Modal -->
+  <div class="modal-overlay" id="copyToSiteModal" style="display:none">
+    <div class="modal modal-copy">
+      <div class="modal-header">
+        <h3>📋 Değişkenleri Kopyala</h3>
+        <button class="btn-close" id="btnCloseCopyModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="copy-info">
+          <span class="copy-info-badge" id="copyVarCount">0</span> değişken seçili
+        </div>
+        <div class="form-group">
+          <label>Hedef Site(ler)</label>
+          <div class="copy-site-search">
+            <input type="text" id="copySiteSearch" placeholder="Site ara..." />
+          </div>
+          <div class="copy-site-list" id="copySiteList">
+            <div class="loading-indicator" style="padding:20px">
+              <div class="spinner"></div>
+              <span>Siteler yükleniyor...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="btnCancelCopy">İptal</button>
+        <button class="btn btn-primary" id="btnConfirmCopy" disabled>Kopyala</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Toast Container -->
   <div class="toast-container" id="toastContainer"></div>
