@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IIS Environment Controller</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Title Bar Drag Region -->
+  <div class="titlebar">
+    <div class="titlebar-icon">⚙️</div>
+    <span class="titlebar-text">IIS Environment Controller</span>
+  </div>
+
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <h2>🌐 IIS Explorer</h2>
+        <button class="btn-icon" id="btnRefresh" title="Yenile">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+        </button>
+      </div>
+
+      <div class="sidebar-search">
+        <input type="text" id="sidebarSearch" placeholder="Ara..." />
+      </div>
+
+      <div class="tree-container" id="treeContainer">
+        <div class="loading-indicator" id="treeLoading">
+          <div class="spinner"></div>
+          <span>IIS bilgileri yükleniyor...</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content" id="mainContent">
+      <!-- Empty State -->
+      <div class="empty-state" id="emptyState">
+        <div class="empty-icon">📋</div>
+        <h2>Hoş Geldiniz</h2>
+        <p>Sol panelden bir IIS site veya uygulama seçerek<br>environment variable'larını görüntüleyin.</p>
+        <div class="empty-hint">
+          <span class="kbd">Ctrl</span> + <span class="kbd">R</span> ile yenileyebilirsiniz
+        </div>
+      </div>
+
+      <!-- Variables Panel -->
+      <div class="vars-panel" id="varsPanel" style="display:none">
+        <div class="vars-header">
+          <div class="vars-header-left">
+            <h2 id="selectedAppName">-</h2>
+            <span class="vars-path" id="selectedAppPath">-</span>
+          </div>
+          <div class="vars-header-right">
+            <div class="search-box">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              <input type="text" id="varSearch" placeholder="Değişken ara..." />
+            </div>
+            <button class="btn btn-primary" id="btnAddVar">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+              Ekle
+            </button>
+            <button class="btn btn-secondary" id="btnExport">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              Export
+            </button>
+            <button class="btn btn-secondary" id="btnImport">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Import
+            </button>
+            <button class="btn btn-danger" id="btnBulkDelete" style="display:none">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+              Seçilenleri Sil (<span id="selectedCount">0</span>)
+            </button>
+          </div>
+        </div>
+
+        <div class="vars-table-container">
+          <table class="vars-table" id="varsTable">
+            <thead>
+              <tr>
+                <th class="col-check"><input type="checkbox" id="checkAll" /></th>
+                <th class="col-name">Değişken Adı</th>
+                <th class="col-value">Değer</th>
+                <th class="col-actions">İşlemler</th>
+              </tr>
+            </thead>
+            <tbody id="varsBody">
+            </tbody>
+          </table>
+          <div class="vars-empty" id="varsEmpty" style="display:none">
+            <p>Bu uygulama için environment variable bulunamadı.</p>
+          </div>
+        </div>
+
+        <div class="vars-footer" id="varsFooter">
+          <span id="varCount">0 değişken</span>
+          <span id="configFilePath" class="config-path"></span>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Add Variable Modal -->
+  <div class="modal-overlay" id="addVarModal" style="display:none">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Yeni Environment Variable</h3>
+        <button class="btn-close" id="btnCloseModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="newVarName">Değişken Adı</label>
+          <input type="text" id="newVarName" placeholder="ASPNETCORE_ENVIRONMENT" />
+        </div>
+        <div class="form-group">
+          <label for="newVarValue">Değer</label>
+          <input type="text" id="newVarValue" placeholder="Production" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="btnCancelAdd">İptal</button>
+        <button class="btn btn-primary" id="btnConfirmAdd">Ekle</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- App Footer -->
+  <footer class="app-footer">
+    <span>© 2026 Appouse — All rights reserved.</span>
+    <span class="footer-version">v1.0.0</span>
+  </footer>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
