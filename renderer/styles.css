@@ -1050,6 +1050,7 @@ body {
   background: rgba(108, 92, 231, 0.1);
 }
 .copy-site-item input[type="checkbox"] {
+  width: auto;
   accent-color: var(--accent);
   cursor: pointer;
   flex-shrink: 0;
