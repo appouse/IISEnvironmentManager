@@ -28,6 +28,22 @@ if (!fs.existsSync(packagerOutput)) {
   process.exit(1);
 }
 
+// Yönetici yetkisi manifest'i oluştur
+const exeName = 'IIS Environment Controller.exe';
+const manifestContent = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
+  <trustInfo xmlns="urn:schemas-microsoft-com:asm.v3">
+    <security>
+      <requestedPrivileges>
+        <requestedExecutionLevel level="requireAdministrator" uiAccess="false"/>
+      </requestedPrivileges>
+    </security>
+  </trustInfo>
+</assembly>`;
+const manifestPath = path.join(packagerOutput, `${exeName}.manifest`);
+fs.writeFileSync(manifestPath, manifestContent, 'utf-8');
+console.log('🛡️  Admin manifest oluşturuldu');
+
 // Eski zip varsa sil
 if (fs.existsSync(zipPath)) {
   fs.unlinkSync(zipPath);
