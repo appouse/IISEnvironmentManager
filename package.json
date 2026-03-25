@@ -9,7 +9,7 @@
   },
   "scripts": {
     "start": "electron .",
-    "build": "npx @electron/packager . \"IIS Environment Controller\" --platform=win32 --arch=x64 --out=dist --overwrite --asar",
+    "build": "npx @electron/packager . \"IIS Environment Controller\" --platform=win32 --arch=x64 --out=dist --overwrite --asar --win32metadata.requested-execution-level=requireAdministrator",
     "postbuild": "node scripts/postbuild.js",
     "release": "npm run build && npm run postbuild",
     "sendRelease": "npm version patch && git push origin main --tags"
