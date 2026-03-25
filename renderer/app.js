@@ -545,6 +545,7 @@ async function handleImport() {
 // ── Copy to Site ────────────────────────────
 let copySiteSelections = new Set();
 let allSitesForCopy = [];
+let copySiteSearchBound = false;
 
 async function showCopyModal() {
   if (selectedKeys.size === 0) {
@@ -561,26 +562,40 @@ async function showCopyModal() {
   const siteList = $('#copySiteList');
   siteList.innerHTML = '<div class="loading-indicator" style="padding:20px"><div class="spinner"></div><span>Siteler yükleniyor...</span></div>';
 
+  // Bind search only once
+  if (!copySiteSearchBound) {
+    copySiteSearchBound = true;
+    $('#copySiteSearch').addEventListener('input', () => {
+      const q = $('#copySiteSearch').value.toLowerCase();
+      const filtered = allSitesForCopy.filter(s => 
+        (s.name || '').toLowerCase().includes(q) || (s.path || '').toLowerCase().includes(q)
+      );
+      renderCopySiteList(filtered);
+    });
+  }
+
   try {
     const sites = await window.api.getSites();
     allSitesForCopy = [];
 
     for (const site of sites) {
-      const physPath = await window.api.getSitePhysicalPath(site.Name);
+      const siteName = site.Name || site.name || '';
+      const siteState = site.State?.toString() === '1' || site.State === 'Started' ? 'Started' : 'Stopped';
+      
+      const physPath = await window.api.getSitePhysicalPath(siteName);
       if (physPath && physPath !== currentPhysicalPath) {
-        const state = site.State?.toString() === '1' || site.State === 'Started' ? 'Started' : 'Stopped';
-        allSitesForCopy.push({ name: site.Name, path: physPath, state });
+        allSitesForCopy.push({ name: siteName, path: physPath, state: siteState });
       }
 
       // Also get sub-applications
-      const apps = await window.api.getApplications(site.Name);
+      const apps = await window.api.getApplications(siteName);
       if (apps && apps.length > 0) {
         for (const app of apps) {
           if (app.PhysicalPath && app.PhysicalPath !== currentPhysicalPath) {
             allSitesForCopy.push({
-              name: `${site.Name}${app.Path}`,
+              name: `${siteName}${app.Path || ''}`,
               path: app.PhysicalPath,
-              state: site.State?.toString() === '1' || site.State === 'Started' ? 'Started' : 'Stopped'
+              state: siteState
             });
           }
         }
@@ -588,13 +603,6 @@ async function showCopyModal() {
     }
 
     renderCopySiteList(allSitesForCopy);
-
-    // Bind search
-    $('#copySiteSearch').addEventListener('input', () => {
-      const q = $('#copySiteSearch').value.toLowerCase();
-      const filtered = allSitesForCopy.filter(s => s.name.toLowerCase().includes(q) || s.path.toLowerCase().includes(q));
-      renderCopySiteList(filtered);
-    });
 
   } catch (err) {
     siteList.innerHTML = `<div class="copy-empty">Site bilgileri alınamadı: ${err.message}</div>`;
@@ -616,12 +624,15 @@ function renderCopySiteList(sites) {
 
     const badgeClass = site.state === 'Started' ? 'badge-running' : 'badge-stopped';
     const badgeText = site.state === 'Started' ? 'Çalışıyor' : 'Durdu';
+    
+    const displayName = site.name || site.Name || '(İsimsiz)';
+    const displayPath = site.path || site.Path || '';
 
     item.innerHTML = `
       <input type="checkbox" ${copySiteSelections.has(site.path) ? 'checked' : ''} />
       <div class="copy-site-item-info">
-        <div class="copy-site-item-name">${escapeHtml(site.name)}</div>
-        <div class="copy-site-item-path">${escapeHtml(site.path)}</div>
+        <div class="copy-site-item-name">${escapeHtml(displayName)}</div>
+        <div class="copy-site-item-path">${escapeHtml(displayPath)}</div>
       </div>
       <span class="copy-site-item-badge ${badgeClass}">${badgeText}</span>
     `;

@@ -33,6 +33,7 @@ function createWindow() {
   });
 
   mainWindow.loadFile(path.join(__dirname, 'renderer', 'index.html'));
+
 }
 
 app.whenReady().then(() => {
