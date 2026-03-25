@@ -1,6 +1,6 @@
 {
   "name": "iis-environment-controller",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "IIS Application Pool ve Environment Variable yönetim aracı",
   "main": "main.js",
   "repository": {
