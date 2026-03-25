@@ -1,8 +1,8 @@
 {
-  "version": "1.0.8",
-  "url": "https://github.com/appouse/IISEnvironmentController/releases/download/v1.0.8/IISEnvironmentController-v1.0.8.zip",
-  "sha256": "d8415240d8f65d672b136ecd3b76e69e439209bc9baecc6f159697df2146f5a0",
-  "fileName": "IISEnvironmentController-v1.0.8.zip",
+  "version": "1.0.9",
+  "url": "https://github.com/appouse/IISEnvironmentController/releases/download/v1.0.9/IISEnvironmentController-v1.0.9.zip",
+  "sha256": "6c9861b1a378e8ab5459fe982f0413349cf38e1adad67e590a38cdfea07185ea",
+  "fileName": "IISEnvironmentController-v1.0.9.zip",
   "releaseNotes": "",
-  "releasedAt": "2026-03-24T13:53:03.098Z"
+  "releasedAt": "2026-03-25T08:40:14.612Z"
 }
